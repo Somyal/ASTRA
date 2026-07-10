@@ -1,0 +1,34 @@
+.card {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  transition: var(--transition-smooth);
+}
+
+.card-flat {
+  background: var(--surface-base);
+  border: 1px solid var(--surface-border);
+}
+
+.card-raised {
+  background: var(--surface-base);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-raised:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-glass {
+  background: var(--surface-base);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-md);
+}
+
+.card-glass:hover {
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-lg);
+  border-color: hsla(223, 20%, 40%, 0.3);
+}

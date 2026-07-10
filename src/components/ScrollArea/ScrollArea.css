@@ -1,0 +1,23 @@
+.scroll-area {
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* Custom scrollbars inside ScrollArea */
+.scroll-area::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: var(--radius-full);
+}
+
+.scroll-area::-webkit-scrollbar-thumb:hover {
+  background: hsla(223, 20%, 40%, 0.4);
+}

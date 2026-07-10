@@ -1,0 +1,169 @@
+.error-boundary-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--bg-base, #0f0f0f);
+  color: var(--text-primary, #ffffff);
+  padding: var(--space-4, 16px);
+  overflow-y: auto;
+}
+
+.error-boundary-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4, 16px);
+  max-width: 500px;
+  padding: var(--space-6, 24px);
+  background: var(--surface-elevated, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md, 12px);
+  backdrop-filter: blur(10px);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-boundary-icon {
+  font-size: 48px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.error-boundary-title {
+  color: var(--accent-danger, #ff4444);
+  margin: var(--space-2, 8px) 0;
+}
+
+.error-boundary-message {
+  text-align: center;
+  margin-bottom: var(--space-2, 8px);
+}
+
+.error-boundary-details {
+  width: 100%;
+  padding: var(--space-3, 12px);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-sm, 8px);
+  margin: var(--space-3, 12px) 0;
+  text-align: left;
+}
+
+.error-boundary-error-title {
+  display: block;
+  margin-bottom: var(--space-2, 8px);
+  color: var(--accent-danger, #ff4444);
+  font-weight: 600;
+}
+
+.error-boundary-error-message {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary, #cccccc);
+  word-break: break-all;
+  margin-bottom: var(--space-2, 8px);
+}
+
+.error-boundary-stack {
+  width: 100%;
+  margin-top: var(--space-2, 8px);
+}
+
+.error-boundary-summary {
+  cursor: pointer;
+  user-select: none;
+  padding: var(--space-2, 8px);
+  border-radius: var(--radius-sm, 8px);
+  transition: background-color 0.2s ease;
+}
+
+.error-boundary-summary:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.error-boundary-stack-trace {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary, #cccccc);
+  background: rgba(0, 0, 0, 0.5);
+  padding: var(--space-3, 12px);
+  border-radius: var(--radius-sm, 8px);
+  overflow-x: auto;
+  max-height: 200px;
+  margin-top: var(--space-2, 8px);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.error-boundary-actions {
+  display: flex;
+  gap: var(--space-3, 12px);
+  width: 100%;
+  justify-content: center;
+  margin: var(--space-2, 8px) 0;
+  flex-wrap: wrap;
+}
+
+.error-boundary-actions button {
+  min-width: 140px;
+}
+
+.error-boundary-help {
+  text-align: center;
+  margin-top: var(--space-2, 8px);
+  font-style: italic;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .error-boundary-content {
+    background: var(--surface-elevated, rgba(255, 255, 255, 0.03));
+  }
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .error-boundary-container {
+    padding: var(--space-3, 12px);
+  }
+
+  .error-boundary-content {
+    padding: var(--space-4, 16px);
+    max-width: 100%;
+  }
+
+  .error-boundary-icon {
+    font-size: 36px;
+  }
+
+  .error-boundary-actions {
+    flex-direction: column;
+  }
+
+  .error-boundary-actions button {
+    width: 100%;
+  }
+}

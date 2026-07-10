@@ -1,0 +1,50 @@
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.input-label {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.input-field {
+  width: 100%;
+  background: var(--bg-base);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  transition: var(--transition-quick);
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: var(--accent-base);
+  box-shadow: 0 0 0 1px var(--accent-base);
+}
+
+.input-field:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--surface-base);
+}
+
+.input-error {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-caption);
+  color: var(--accent-danger);
+}
+
+.input-has-error .input-field {
+  border-color: var(--accent-danger);
+}
+
+.input-has-error .input-field:focus {
+  box-shadow: 0 0 0 1px var(--accent-danger);
+}

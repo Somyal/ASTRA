@@ -1,0 +1,73 @@
+.typography {
+  line-height: 1.5;
+  transition: var(--transition-quick);
+}
+
+.typography-display {
+  font-family: var(--font-serif);
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-4);
+}
+
+.typography-heading {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.015em;
+  margin-bottom: var(--space-3);
+}
+
+.typography-title {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-2);
+}
+
+.typography-subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.typography-body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.6;
+}
+
+.typography-caption {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+}
+
+.typography-label {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.01em;
+  display: inline-block;
+  margin-bottom: var(--space-1);
+}
+
+/* Color Mappings */
+.color-primary {
+  color: var(--text-primary);
+}
+
+.color-secondary {
+  color: var(--text-secondary);
+}
+
+.color-muted {
+  color: var(--text-muted);
+}
+
+.color-accent {
+  color: var(--accent-base);
+}

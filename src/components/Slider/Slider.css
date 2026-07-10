@@ -1,0 +1,94 @@
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slider-label {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.slider-value {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent-base);
+}
+
+.slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--surface-border);
+  border-radius: var(--radius-full);
+  outline: none;
+  transition: var(--transition-quick);
+}
+
+/* Chrome/Safari Thumb */
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-base);
+  cursor: pointer;
+  transition: var(--transition-quick);
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--bg-base);
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+  background: hsl(190, 85%, 55%);
+  transform: scale(1.1);
+}
+
+/* Firefox Thumb */
+.slider-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-base);
+  cursor: pointer;
+  transition: var(--transition-quick);
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--bg-base);
+}
+
+.slider-input::-moz-range-thumb:hover {
+  background: hsl(190, 85%, 55%);
+  transform: scale(1.1);
+}
+
+/* Focus state */
+.slider-input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent-base);
+}
+
+.slider-input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent-base);
+}
+
+.slider-disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.slider-disabled .slider-input::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.slider-disabled .slider-input::-moz-range-thumb {
+  cursor: not-allowed;
+}
