@@ -45,7 +45,12 @@ This map describes the structural layout, boundaries, and dependencies of major 
 
 ## 3. Documentation Workspace (`docs/`)
 
-*   **Bug Tracker (`Bug_Tracker.md`)**: The single source of truth for all bugs discovered during Project ASTRA, tracking lifecycle states (Open/In Progress/Fixed).
-*   **Engineering Playbook (`Engineering_Playbook.md`)**: Standardized rules, architectural restrictions, and workflows.
-*   **Repository Map (`Repository_Map.md`)**: The directory and component boundary map.
+`docs/README.md` is the contributor entry point and identifies active authority versus historical context.
 
+* **`product/`**: Active product constitution, identity, principles, roadmap, debt, non-goals, vision, and immediate priorities.
+* **`learning-record/`**: Accepted Learning Record philosophy, UX, implementation roadmap, and unresolved questions.
+* **`architecture/`**: Accepted Architecture Decision Records and this repository map.
+* **`engineering/`**: Engineering playbook, standing principles, glossary, and bug tracker.
+* **`foundation/`**: Living foundation checklist and dated readiness reviews.
+* **`history/`**: Historical milestone logs, lessons, and dated alignment/status snapshots. These explain prior decisions but do not override active documentation.
+* **`reviews/`**: Preserved historical external/design reviews.

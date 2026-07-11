@@ -94,7 +94,7 @@ Every plan must be evaluated against the following checklists:
 ## 4. Documentation Standards
 
 ### A. Architecture Decision Records (ADRs)
-An ADR must be created whenever a decision affects the long-term system architecture (e.g. database schema transformations, service boundaries, or state models). Write ADRs to the `docs/reviews/` folder, numbering them sequentially.
+An ADR must be created whenever a decision affects the long-term system architecture (e.g. database schema transformations, service boundaries, or state models). Maintain accepted ADRs in `docs/architecture/Architecture_Decisions.md`, numbering them sequentially. Historical reviews remain in `docs/reviews/` and do not replace accepted ADRs.
 
 ### B. What Must Always Be Documented
 *   Any database migration addition.
