@@ -52,6 +52,6 @@ This map describes the structural layout, boundaries, and dependencies of major 
 * **`learning-record/`**: Accepted Learning Record philosophy, UX, engineering contract, implementation roadmap, and unresolved questions.
 * **`architecture/`**: Accepted Architecture Decision Records and this repository map.
 * **`engineering/`**: Engineering playbook (which integrates standing principles), glossary, and bug tracker.
-* **`foundation/`**: Living foundation checklist and dated readiness reviews.
+* **`foundation/`**: Living foundation checklist, dated readiness reviews, and the LR-1 Repository Audit & Implementation Plan.
 * **`history/`**: Historical milestone logs, lessons, standing principles snapshot, and dated alignment/status snapshots. These explain prior decisions but do not override active documentation.
 * **`reviews/`**: Preserved historical external/design reviews.

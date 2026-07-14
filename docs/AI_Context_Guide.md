@@ -21,21 +21,18 @@ This document is the permanent onboarding guide and operating manual for all fut
 ## 2. Current Product Phase
 
 *   **Current Era:** Infrastructure and Foundation Era.
-*   **Current Milestone:** Final Foundation Freeze (Pre-Learning Record Implementation).
-*   **Current Objective:** Establish robust developer infrastructure, developer onboarding, and documentation stability for future AI/human contributors before any product data changes begin.
-*   **Current Priorities:**
-    1. Author the AI Context Guide (`docs/AI_Context_Guide.md`) as the onboarding source of truth.
-    2. Consolidate engineering principles, removing obsolete instructions and documenting the active authority.
-    3. Perform the final foundation audit evaluating readiness for Milestone LR-0.
+*   **Current Milestone:** LR-1 (Learning Record Foundation)
+*   **Recommended Next Milestone:** LR-2 (Learning Item and Action Foundation)
+*   **Required Reading:**
+    *   [Learning Record Engineering Contract](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Engineering_Contract.md)
+    *   [LR-1 Repository Audit & Implementation Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md)
+*   **Expected Deliverable:** Trustworthy Factual Substrate (reconciled statistics/streaks compiled via `AnalyticsService`, transaction-safe atomic backup/restore confirmation, inactive developer playground and companion placeholder UI quarantine).
 *   **Current Blockers (Project-Level):**
-    1. *Analytics:* Time, daily, weekly, and lifetime metrics are not reconcilable with raw database logs.
-    2. *Backup/Restore:* Recovery is not transactionally safe, atomic, or verified.
-    3. *Learning Record Vocabulary:* The domain terms are not yet declared as code schema models.
-    4. *Syllabus/Task Drift:* Checking a task checkbox can mutate syllabus topic progress, violating ADR-0004.
-    5. *Placeholder UI:* The UI still exposes inactive companions, empty insights, and developer playgrounds.
-    6. *Core Loop Verification:* No automated end-to-end recovery, accessibility, or keyboard tests exist.
-*   **Next Milestone:** Milestone LR-0 (Contract and Migration Design).
-*   **Overall Foundation Status:** The local SQLite + Tauri + React substrate is compile-stable and operates as a functional prototype, but requires Phase 1 (Trustworthy Foundation) completion before starting Learning Record implementation.
+    1. *Analytics:* Time, daily, weekly, and lifetime metrics are calculated inline in BootService and are not dynamically compiled from SQLite logs.
+    2. *Backup/Restore:* Overwriting tables during restore is not transactional or atomic.
+    3. *Syllabus/Task Drift:* Checking a task checkbox can mutate syllabus topic progress, violating ADR-0004.
+    4. *Placeholder UI:* The UI still exposes inactive companion widgets, Memory Sanctuary settings subtabs, and developer playgrounds.
+*   **Overall Foundation Status:** The local SQLite + Tauri + React substrate is compile-stable and operates as a functional prototype. Final Foundation Freeze and LR-0 are complete. LR-1 is planned and ready for implementation.
 
 ---
 
@@ -144,6 +141,7 @@ When prompting or instructing future contributors (human or LLM):
 *   **Enforce safety constraints:** Ask: *"Does this query perform at $O(\log N)$ or better?"* and *"Does this change expose local user data?"*
 *   **Avoid unrelated code sweeps:** Force the system to make narrow, contiguous changes and suggest specific file paths.
 *   **Request logical commit points:** Keep Git history clean by suggesting where to commit.
+*   **Use Context Guide Entry Points:** Never require prompts to manually enumerate large documentation lists. Use the AI Context Guide as the single entry point for loading task-specific context.
 
 ---
 
@@ -186,6 +184,7 @@ Run this checklist mentally before executing any code changes:
 
 ```
 [ ] Read Constitution (README, Principles, Identity, Architecture Decisions)
+[ ] Load task-specific documentation from the Task Routing Matrix (Section 11)
 [ ] Read task prompt and align on core intent
 [ ] Inspect Repository Map and locate source files
 [ ] Write Implementation Plan and get user approval
@@ -194,3 +193,21 @@ Run this checklist mentally before executing any code changes:
 [ ] Document modifications in walkthrough and bug tracker
 [ ] Author handoff summary and recommend next commit point
 ```
+
+---
+
+## 11. Task Routing Matrix
+
+When assigned a specific task, load the mandatory Level 1 (Constitution) documents first, then load the following task-specific documents to establish direct context:
+
+| Task Type | Read First (Primary Context) | Then Read (Details & Reference) |
+| :--- | :--- | :--- |
+| **LR-1 Milestone** | [Engineering Contract](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Engineering_Contract.md) | [Repository Audit & Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md) → [Repository Map](file:///c:/Projects/ASTRA/docs/architecture/Repository_Map.md) |
+| **LR-2 / LR-3 Milestone** | [Engineering Contract](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Engineering_Contract.md) | [Learning Record Architecture](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Architecture_v1.md) → [Repository Audit & Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md) |
+| **Syllabus / Progress** | [Engineering Contract](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Engineering_Contract.md) | [Repository Audit & Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md) → [Repository Map](file:///c:/Projects/ASTRA/docs/architecture/Repository_Map.md) |
+| **UI Layouts & Views** | [Product Identity](file:///c:/Projects/ASTRA/docs/product/Product_Identity.md) | [Engineering Playbook](file:///c:/Projects/ASTRA/docs/engineering/Engineering_Playbook.md) → [Repository Map](file:///c:/Projects/ASTRA/docs/architecture/Repository_Map.md) |
+| **Bug Fixes** | [Bug Tracker](file:///c:/Projects/ASTRA/docs/engineering/Bug_Tracker.md) | [Repository Map](file:///c:/Projects/ASTRA/docs/architecture/Repository_Map.md) → [Engineering Playbook](file:///c:/Projects/ASTRA/docs/engineering/Engineering_Playbook.md) |
+| **AI / Persona / Logic** | [Product Principles](file:///c:/Projects/ASTRA/docs/product/Product_Principles.md) | [Architecture Decisions](file:///c:/Projects/ASTRA/docs/architecture/Architecture_Decisions.md) → [AI Context Guide](file:///c:/Projects/ASTRA/docs/AI_Context_Guide.md) |
+| **Database & Migrations**| [Engineering Contract](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Engineering_Contract.md) | [Repository Map](file:///c:/Projects/ASTRA/docs/architecture/Repository_Map.md) → [Repository Audit & Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md) |
+| **Refactoring & Debt** | [Engineering Playbook](file:///c:/Projects/ASTRA/docs/engineering/Engineering_Playbook.md) | [Repository Audit & Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md) |
+| **Analytics & Metrics** | [Engineering Contract](file:///c:/Projects/ASTRA/docs/learning-record/Learning_Record_Engineering_Contract.md) | [Repository Audit & Plan](file:///c:/Projects/ASTRA/docs/foundation/LR1_Repository_Audit_and_Implementation_Plan.md) |

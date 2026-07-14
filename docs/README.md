@@ -11,8 +11,9 @@ Start here. This directory separates the documents that govern future work from 
 5. [Architecture Decisions](architecture/Architecture_Decisions.md) — accepted long-term decisions. ADR-0006 freezes Learning Record philosophy and boundaries.
 6. [Engineering Playbook](engineering/Engineering_Playbook.md) — implementation and verification rules.
 7. [AI Context & Onboarding Guide](AI_Context_Guide.md) — permanent onboarding guide for future AI contributors.
+8. [LR-1 Repository Audit & Implementation Plan](foundation/LR1_Repository_Audit_and_Implementation_Plan.md) — the authoritative guide to implementing LR-1.
 
-When documents conflict, use this order: accepted ADRs and Product Principles; Product Constitution; Learning Record Architecture; Learning Record Engineering Contract; active roadmap/checklists; AI Context & Onboarding Guide; then historical material.
+When documents conflict, use this order: accepted ADRs and Product Principles; Product Constitution; Learning Record Architecture; Learning Record Engineering Contract; LR-1 Repository Audit & Implementation Plan; active roadmap/checklists; AI Context & Onboarding Guide; then historical material.
 
 ## Directory guide
 
