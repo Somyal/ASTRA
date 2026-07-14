@@ -16,6 +16,11 @@ import {
   InMemorySyllabusRepository,
   SQLiteSyllabusRepository
 } from './syllabus.repository';
+import {
+  ILearningRepository,
+  InMemoryLearningRepository,
+  SQLiteLearningRepository
+} from './learning.repository';
 
 export * from './session.repository';
 export * from './task.repository';
@@ -23,6 +28,7 @@ export * from './settings.repository';
 export * from './memory.repository';
 export * from './sqlite.repositories';
 export * from './syllabus.repository';
+export * from './learning.repository';
 export * from './db';
 
 export interface IRepositoryFactory {
@@ -33,6 +39,7 @@ export interface IRepositoryFactory {
   getMemoryRepository(): IMemoryRepository;
   getAdaptationLedgerRepository(): IAdaptationLedgerRepository;
   getSyllabusRepository(): ISyllabusRepository;
+  getLearningRepository(): ILearningRepository;
 }
 
 export class RepositoryFactory implements IRepositoryFactory {
@@ -53,6 +60,9 @@ export class RepositoryFactory implements IRepositoryFactory {
   private sqlMemory = new SQLiteMemoryRepository();
   private sqlLedger = new SQLiteAdaptationLedgerRepository();
   private sqlSyllabus = new SQLiteSyllabusRepository();
+  
+  private memLearning = new InMemoryLearningRepository();
+  private sqlLearning = new SQLiteLearningRepository();
 
   setMode(mode: 'memory' | 'sqlite') {
     this.activeMode = mode;
@@ -88,6 +98,10 @@ export class RepositoryFactory implements IRepositoryFactory {
 
   getSyllabusRepository(): ISyllabusRepository {
     return this.activeMode === 'sqlite' ? this.sqlSyllabus : this.memSyllabus;
+  }
+
+  getLearningRepository(): ILearningRepository {
+    return this.activeMode === 'sqlite' ? this.sqlLearning : this.memLearning;
   }
 }
 
