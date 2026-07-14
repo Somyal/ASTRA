@@ -22,4 +22,4 @@
 | Packaging | Needs Polish | Frontend build and Rust check pass. | Release migration/recovery path verified. |
 | Performance | Needs Polish | No measured product budget. | Boot, timer, queue, history, and export budgets measured. |
 | Bug Tracker | Stable | Process and historical entries exist. | Kept current with verified fixes and no untracked core defects. |
-| Documentation | Needs Revision | Strong documents, but earlier architecture/product claims drift from runtime. | Shipped/experimental/planned/internal status maintained. |
+| Documentation | Stable | Onboarding guide added; standing principles consolidated; stubs quarantined/historical records archived. | Shipped/experimental/planned/internal status maintained. |

@@ -17,6 +17,22 @@ Astra is not a typical productivity utility. It is designed to be a calm sanctua
 *   **The First Session Experience**: Must feel effortless. Minimal onboarding, zero setup wizards, no mandatory cloud registrations, and absolute silence by default.
 *   **The Millionth Session Experience**: Must remain performant. Database indexes are optimized for years of daily data history. State machines reset cleanly to `'idle'` to ensure the app never becomes bloated or sluggish over a five-year journey.
 
+### C. Standing Directives
+1.  **Preserve Values, Not Rigidity**: Astra's core identity is defined by its values (Calm, Privacy, Ownership, Honesty, Respect), not by rigid tactical defaults. relational parameters (humor, motivational mode, UI pacing) and styling may be customized, while core privacy and flow protection remain immutable.
+2.  **Accessibility Gating over Majority Rules**: Evaluate accessibility (screen-reading, localization, high contrast, reduced motion) under the query: *"Would the students who need this be locked out without it?"* rather than whether the majority of users notice it. Purity must never result in exclusion of vulnerable student groups.
+3.  **Remove Operational Noise, Not Meaningful Decisions**: Astra acts as an advisor, never as a controller. It removes operational friction (elapsed time calculation, spaced repetition scheduling, session logs) but preserves student autonomy and decision authority. Astra suggests options; the student decides and commands.
+4.  **Distinct Interaction Modes**:
+    *   *Focus Mode (Invisible Tool):* Astra must be completely silent, display no notifications, and hide all layouts. The tool disappears to protect user flow. Astra must never speak, flash, or prompt while a focus session timer is active.
+    *   *Reflection Mode (Empathetic Mirror):* Astra behaves as an empathetic mirror, habit tracker, and guide.
+5.  **User Ownership & Longevity**: Data ownership must be technically guaranteed. The local SQLite database must be queryable and structured relationally (no monolithic, unconstrained JSON blobs for crown-jewel states).
+    *   *Export:* Human-readable Markdown and structured JSON data exports.
+    *   *Import / Recovery:* Seamless restore from user-owned file keys.
+    *   *Encrypted Backup:* Encrypted backups to user-specified local or user-owned cloud drives.
+    *   *Full Wipe:* A complete, single-command unrecoverable purge of local databases and configurations.
+6.  **AI Enhances; It Never Defines**: Astra must remain fully functional offline. Deterministic core operations (timers, checklists, Leitner revision, chapter hierarchies) must execute locally without AI dependencies. AI (local or cloud fallback) is strictly an additive cognitive companion for natural language intents and long-term reflection. AI providers are technically interchangeable but behaviorally different; Astra's identity remains independent of the reasoning model.
+7.  **Simplicity Wins**: Abstractions, plugin schemas, and complex pipelines are rejected unless they have a direct, active consumer in the current milestone. Maintainable, direct, readable code is preferred over speculative interfaces.
+8.  **Diagnostics & Safety**: All tracking, crash reporting, or diagnostic options must be named *Anonymous Diagnostics* or *Crash Diagnostics* to avoid telemetry tracking implications. Diagnostics are opt-in, anonymized, and aggregate, protecting privacy as a legal floor (under GDPR, India DPDP, and COPPA).
+
 ---
 
 ## 2. Architecture & Design Rules

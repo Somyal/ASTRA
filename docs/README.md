@@ -7,10 +7,12 @@ Start here. This directory separates the documents that govern future work from 
 1. [Product Constitution](product/Product_Recalibration_v1.md) — what Astra is, the five pillars, and the core learning loop.
 2. [Product Principles](product/Product_Principles.md) and [Non-Goals](product/Non_Goals.md) — feature admission and boundaries.
 3. [Learning Record Architecture](learning-record/Learning_Record_Architecture_v1.md) — the canonical model for continuity, evidence, and planning.
-4. [Architecture Decisions](architecture/Architecture_Decisions.md) — accepted long-term decisions. ADR-0006 freezes Learning Record philosophy and boundaries.
-5. [Engineering Playbook](engineering/Engineering_Playbook.md) — implementation and verification rules.
+4. [Learning Record Engineering Contract](learning-record/Learning_Record_Engineering_Contract.md) — software-level boundaries, persistence logic, and lifecycles.
+5. [Architecture Decisions](architecture/Architecture_Decisions.md) — accepted long-term decisions. ADR-0006 freezes Learning Record philosophy and boundaries.
+6. [Engineering Playbook](engineering/Engineering_Playbook.md) — implementation and verification rules.
+7. [AI Context & Onboarding Guide](AI_Context_Guide.md) — permanent onboarding guide for future AI contributors.
 
-When documents conflict, use this order: accepted ADRs and Product Principles; Product Constitution; Learning Record Architecture; active roadmap/checklists; then historical material.
+When documents conflict, use this order: accepted ADRs and Product Principles; Product Constitution; Learning Record Architecture; Learning Record Engineering Contract; active roadmap/checklists; AI Context & Onboarding Guide; then historical material.
 
 ## Directory guide
 

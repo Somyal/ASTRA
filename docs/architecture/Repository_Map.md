@@ -47,10 +47,11 @@ This map describes the structural layout, boundaries, and dependencies of major 
 
 `docs/README.md` is the contributor entry point and identifies active authority versus historical context.
 
+* **`AI_Context_Guide.md` (at root)**: Permanent onboarding guide for future AI systems.
 * **`product/`**: Active product constitution, identity, principles, roadmap, debt, non-goals, vision, and immediate priorities.
-* **`learning-record/`**: Accepted Learning Record philosophy, UX, implementation roadmap, and unresolved questions.
+* **`learning-record/`**: Accepted Learning Record philosophy, UX, engineering contract, implementation roadmap, and unresolved questions.
 * **`architecture/`**: Accepted Architecture Decision Records and this repository map.
-* **`engineering/`**: Engineering playbook, standing principles, glossary, and bug tracker.
+* **`engineering/`**: Engineering playbook (which integrates standing principles), glossary, and bug tracker.
 * **`foundation/`**: Living foundation checklist and dated readiness reviews.
-* **`history/`**: Historical milestone logs, lessons, and dated alignment/status snapshots. These explain prior decisions but do not override active documentation.
+* **`history/`**: Historical milestone logs, lessons, standing principles snapshot, and dated alignment/status snapshots. These explain prior decisions but do not override active documentation.
 * **`reviews/`**: Preserved historical external/design reviews.

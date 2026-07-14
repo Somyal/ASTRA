@@ -4,6 +4,14 @@
 
 These questions must be deliberately answered before implementation. They are preserved here because premature certainty would create an inflexible Learning Record. No implementation should quietly answer one through incidental UI or schema choices.
 
+## Resolved in LR-0 Engineering Contract
+
+The [Learning Record Engineering Contract (LR-0)](Learning_Record_Engineering_Contract.md) has resolved several key product and persistence questions to establish the implementation authority:
+*   **Outcome Set (Q2 & Q3):** Confirmed as `'moved_forward'`, `'partly'`, `'retry'`, and `'unknown'`. "Close without outcome" is explicitly supported as a transition to `Idle` in the Focus Session state machine, archiving the elapsed session without creating a learning entry.
+*   **Syllabus & Task Decoupling (Q12 & Q23):** Tasks are strictly checklists and cannot mutate topic progress. Syllabus progression is dynamically calculated at runtime from entries with a `'moved_forward'` outcome.
+*   **Clock & Timezone Boundaries (Q27 & Q48):** Addressed via append-only entry corrections and transaction validation blocks in the failure scenarios.
+*   **Factual Analytics (Q25 & Q26):** Managed through the Factual Analytics Layering Model (Layer 0 to Layer 3), ensuring derived calculations are computed purely at runtime.
+
 ## Product semantics
 
 1. What exact visible labels should replace “complete” so they remain understandable across learning contexts?
