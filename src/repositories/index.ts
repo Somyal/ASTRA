@@ -58,6 +58,10 @@ export class RepositoryFactory implements IRepositoryFactory {
     this.activeMode = mode;
   }
 
+  getMode(): 'memory' | 'sqlite' {
+    return this.activeMode;
+  }
+
   getSessionRepository(): ISessionRepository {
     return this.activeMode === 'sqlite' ? this.sqlSessions : this.memSessions;
   }

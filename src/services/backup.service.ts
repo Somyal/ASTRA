@@ -62,7 +62,6 @@ export class BackupService {
 
       const serialized = JSON.stringify(payload, null, 2);
       
-      // Save backup as a downloadable local JSON file
       const blob = new Blob([serialized], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -82,13 +81,31 @@ export class BackupService {
     try {
       const payload = JSON.parse(backupJsonStr) as BackupPayload;
       
-      // Validate schema metadata structure
+      // 1. Validate JSON format & metadata structure
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('Invalid backup payload: payload is not an object.');
+      }
       if (!payload.metadata || !payload.data) {
-        throw new Error('Invalid backup structure.');
+        throw new Error('Invalid backup structure: missing metadata or data.');
       }
       
+      // 2. Validate schema version
       if (payload.metadata.schemaVersion !== 5) {
         throw new Error(`Incompatible schema version: ${payload.metadata.schemaVersion}. Current expected is 5.`);
+      }
+
+      // 3. Validate required tables arrays/objects formats
+      if (payload.data.sessions && !Array.isArray(payload.data.sessions)) {
+        throw new Error('Invalid backup structure: sessions must be an array.');
+      }
+      if (payload.data.tasks && !Array.isArray(payload.data.tasks)) {
+        throw new Error('Invalid backup structure: tasks must be an array.');
+      }
+      if (payload.data.memories && !Array.isArray(payload.data.memories)) {
+        throw new Error('Invalid backup structure: memories must be an array.');
+      }
+      if (payload.data.settings && typeof payload.data.settings !== 'object') {
+        throw new Error('Invalid backup structure: settings must be an object.');
       }
 
       this.pendingRestoreData = payload.data;
@@ -98,7 +115,7 @@ export class BackupService {
         astraVersion: payload.metadata.astraVersion,
         sessionsCount: payload.data.sessions?.length || 0,
         tasksCount: payload.data.tasks?.length || 0,
-        settingsCount: Object.keys(payload.data.settings || {}).length,
+        settingsCount: payload.data.settings ? Object.keys(payload.data.settings).length : 0,
         memoriesCount: payload.data.memories?.length || 0,
       };
     } catch (e) {
@@ -113,49 +130,161 @@ export class BackupService {
       throw new Error('No pending restore data found. Select and preview a backup first.');
     }
 
+    const sessionRepo = repositoryFactory.getSessionRepository();
+    const taskRepo = repositoryFactory.getTaskRepository();
+    const settingsRepo = repositoryFactory.getSettingsRepository();
+    const memoryRepo = repositoryFactory.getMemoryRepository();
+
+    const data = this.pendingRestoreData;
+    const mode = repositoryFactory.getMode();
+
+    // 1. Create a temporary safety snapshot of current database state before making changes
+    let safetySnapshot: typeof data;
     try {
-      const sessionRepo = repositoryFactory.getSessionRepository();
-      const taskRepo = repositoryFactory.getTaskRepository();
-      const settingsRepo = repositoryFactory.getSettingsRepository();
-      const memoryRepo = repositoryFactory.getMemoryRepository();
+      const currentSessions = await sessionRepo.getSessions();
+      const currentTasks = await taskRepo.getTasks();
+      const currentSettings = await settingsRepo.getSettings();
+      const currentMemories = await memoryRepo.getMemories();
+      safetySnapshot = {
+        sessions: currentSessions,
+        tasks: currentTasks,
+        settings: currentSettings,
+        memories: currentMemories,
+      };
+    } catch (snapError) {
+      console.error('Failed to create safety snapshot:', snapError);
+      throw new Error('Could not create safety recovery snapshot of current database.', { cause: snapError });
+    }
 
-      const data = this.pendingRestoreData;
+    const restoreMemorySnapshot = async (snapshot: typeof data) => {
+      try {
+        if (snapshot.settings) {
+          await settingsRepo.saveSettings(snapshot.settings);
+        }
+        if (snapshot.sessions) {
+          for (const s of snapshot.sessions) {
+            await sessionRepo.saveSession(s);
+          }
+        }
+        if (snapshot.tasks) {
+          for (const t of snapshot.tasks) {
+            await taskRepo.saveTask(t);
+          }
+        }
+        if (snapshot.memories) {
+          for (const m of snapshot.memories) {
+            await memoryRepo.saveMemory(m);
+          }
+        }
+      } catch (e) {
+        console.error('Fatal: Failed to restore safety recovery snapshot from memory!', e);
+      }
+    };
+
+    if (mode === 'sqlite') {
       const db = getDatabase();
+      
+      // Execute the restore inside a secure transaction block
+      try {
+        await db.execute('BEGIN TRANSACTION');
 
-      // 1. Restore settings & preference configuration
-      if (data.settings) {
-        await settingsRepo.saveSettings(data.settings);
-      }
-
-      // 2. Overwrite raw study sessions log
-      if (Array.isArray(data.sessions)) {
-        await db.execute('DELETE FROM study_sessions');
-        for (const s of data.sessions) {
-          await sessionRepo.saveSession(s);
+        // Restore settings & preference configuration
+        if (data.settings) {
+          await settingsRepo.saveSettings(data.settings);
         }
-      }
 
-      // 3. Overwrite tasks list
-      if (Array.isArray(data.tasks)) {
-        await db.execute('DELETE FROM tasks');
-        for (const t of data.tasks) {
-          await taskRepo.saveTask(t);
+        // Overwrite raw study sessions log
+        if (Array.isArray(data.sessions)) {
+          await db.execute('DELETE FROM study_sessions');
+          for (const s of data.sessions) {
+            await sessionRepo.saveSession(s);
+          }
         }
-      }
 
-      // 4. Overwrite memory entries
-      if (Array.isArray(data.memories)) {
-        await db.execute('DELETE FROM memory_entries');
-        for (const m of data.memories) {
-          await memoryRepo.saveMemory(m);
+        // Overwrite tasks list
+        if (Array.isArray(data.tasks)) {
+          await db.execute('DELETE FROM tasks');
+          for (const t of data.tasks) {
+            await taskRepo.saveTask(t);
+          }
         }
-      }
 
-      this.pendingRestoreData = null;
-    } catch (e) {
-      console.error('Failed to commit restore data:', e);
-      this.pendingRestoreData = null;
-      throw new Error('Could not overwrite SQLite tables with backup.', { cause: e });
+        // Overwrite memory entries
+        if (Array.isArray(data.memories)) {
+          await db.execute('DELETE FROM memory_entries');
+          for (const m of data.memories) {
+            await memoryRepo.saveMemory(m);
+          }
+        }
+
+        await db.execute('COMMIT');
+        this.pendingRestoreData = null;
+      } catch (error) {
+        console.error('Transaction failed, rolling back:', error);
+        try {
+          await db.execute('ROLLBACK');
+        } catch (rollbackError) {
+          console.error('SQLite ROLLBACK command itself failed catastrophically!', rollbackError);
+          // If transaction rollback fails, attempt last-resort recovery snapshot restore
+          if (safetySnapshot) {
+            await restoreMemorySnapshot(safetySnapshot);
+          }
+        }
+        this.pendingRestoreData = null;
+        throw new Error('Restore transaction aborted. Existing data rolled back.', { cause: error });
+      }
+    } else {
+      // Memory Mode: perform restoration with manual snapshot rollback on failure
+      try {
+        // Clear active memory repository lists first
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        (sessionRepo as any).sessions = [];
+        (sessionRepo as any).activeSession = null;
+        (taskRepo as any).tasks = [];
+        (memoryRepo as any).memories = new Map();
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+
+        // Restore settings & preference configuration
+        if (data.settings) {
+          await settingsRepo.saveSettings(data.settings);
+        }
+
+        // Overwrite raw study sessions log
+        if (Array.isArray(data.sessions)) {
+          for (const s of data.sessions) {
+            await sessionRepo.saveSession(s);
+          }
+        }
+
+        // Overwrite tasks list
+        if (Array.isArray(data.tasks)) {
+          for (const t of data.tasks) {
+            await taskRepo.saveTask(t);
+          }
+        }
+
+        // Overwrite memory entries
+        if (Array.isArray(data.memories)) {
+          for (const m of data.memories) {
+            await memoryRepo.saveMemory(m);
+          }
+        }
+
+        this.pendingRestoreData = null;
+      } catch (error) {
+        console.error('In-memory restore failed, rolling back to safety snapshot:', error);
+        if (safetySnapshot) {
+          /* eslint-disable @typescript-eslint/no-explicit-any */
+          (sessionRepo as any).sessions = [];
+          (sessionRepo as any).activeSession = null;
+          (taskRepo as any).tasks = [];
+          (memoryRepo as any).memories = new Map();
+          /* eslint-enable @typescript-eslint/no-explicit-any */
+          await restoreMemorySnapshot(safetySnapshot);
+        }
+        this.pendingRestoreData = null;
+        throw new Error('Memory restore aborted and rolled back.', { cause: error });
+      }
     }
   }
 }
