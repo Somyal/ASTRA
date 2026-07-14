@@ -8,6 +8,7 @@ import { seedService } from './seed.service';
 import { syllabusService } from './syllabus.service';
 import { taskIntelligenceService } from './task_intelligence.service';
 import { analyticsService } from './analytics.service';
+import { learningService } from './learning.service';
 
 /**
  * BootService - Initializes the ASTRA application on startup
@@ -169,6 +170,9 @@ export class BootService {
                 : 3000,
           },
         });
+
+        // 7. Hydrate learning record store
+        await learningService.loadInitialData();
 
         // Stage 4: ready
         uiStore.setBootState('ready');

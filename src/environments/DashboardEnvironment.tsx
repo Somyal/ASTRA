@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useStudyStore } from '../store/study.store';
-import { useUIStore } from '../store/ui.store';
 import { useContentStore } from '../store/content.store';
 import { useTasksStore } from '../store/tasks.store';
 import { useSettingsStore } from '../store/settings.store';
+import { useLearningStore } from '../store/learning.store';
+import { learningService } from '../services/learning.service';
 import { featureFlags } from '../config/featureFlags';
 import { sessionService } from '../services/session.service';
 import { taskService } from '../services/task.service';
@@ -37,9 +38,7 @@ export const DashboardEnvironment: React.FC = () => {
   const { subjects, syllabusTree } = useContentStore();
   const { tasks } = useTasksStore();
 
-  const [selectedSubject, setSelectedSubject] = useState(subjects[0]?.id || '');
   const [duration, setDuration] = useState(3000); // 50 mins in seconds
-  const [chapter, setChapter] = useState('');
 
   // Local Accordion States
   const [expandedSubjects, setExpandedSubjects] = useState<string[]>([]);
@@ -88,45 +87,62 @@ export const DashboardEnvironment: React.FC = () => {
     };
   }, [handleReload]);
 
-  /**
-   * Pre-fill focus controller with top pending task recommendation
-   * Wrapped in requestAnimationFrame to defer state updates
-   */
+
+  const { items } = useLearningStore();
+
+  // Local state for onboarding
+  const [onboardingItemTitle, setOnboardingItemTitle] = useState('');
+  const [onboardingActionWording, setOnboardingActionWording] = useState('');
+  const [isOnboardingSubmitting, setIsOnboardingSubmitting] = useState(false);
+
+  // Local state for standard selection flow
+  const [selectedItemId, setSelectedItemId] = useState(items[0]?.id || 'new');
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newActionWording, setNewActionWording] = useState('');
+
+  // Sync selected item when items list loads or changes
   useEffect(() => {
-    const topPending = tasks.find(t => t.status === 'pending');
-    if (topPending) {
-      // Use requestAnimationFrame instead of setTimeout(0) for better performance
-      const handle = requestAnimationFrame(() => {
-        setSelectedSubject(topPending.subjectId);
-        const cleanTitle = topPending.title
-          .replace(/^Study\s+\S+\s+/, '')
-          .replace(/^Resume\s+\S+\s+/, '')
-          .replace(/^Revise\s+\S+\s+/, '');
-        setChapter(cleanTitle);
+    if (items.length > 0 && selectedItemId === 'new' && !newItemTitle) {
+      requestAnimationFrame(() => {
+        setSelectedItemId(items[0].id);
       });
-
-      // Cleanup: Cancel animation frame if component unmounts
-      return () => cancelAnimationFrame(handle);
     }
-  }, [tasks]);
+  }, [items, selectedItemId, newItemTitle]);
 
-  const handleStart = async () => {
+  const handleOnboardingStart = async () => {
+    if (!onboardingItemTitle.trim() || !onboardingActionWording.trim()) {
+      return;
+    }
+    setIsOnboardingSubmitting(true);
     try {
-      const sub = subjects.find(s => s.id === selectedSubject);
-      sessionService.configureSession(
-        sub ? sub.name : 'General',
-        chapter || 'Introduction',
-        duration
-      );
+      const item = await learningService.createLearningItem(onboardingItemTitle, 'manual');
+      const action = await learningService.createLearningAction(item.id, 'study', onboardingActionWording);
+      const defaultDuration = useSettingsStore.getState().preferences.focusDefaultDuration || 3000;
+      sessionService.configureSession(item.title, action.customWording, defaultDuration);
       await sessionService.startSession();
-    } catch (error) {
-      console.error('[DashboardEnvironment] Failed to start session:', error);
-      useUIStore
-        .getState()
-        .setBoot(
-          'error',
-          `Failed to start session: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
+    } catch (e) {
+      console.error('Failed to start onboarding session', e);
+    } finally {
+      setIsOnboardingSubmitting(false);
+    }
+  };
+
+  const handleStandardStart = async () => {
+    try {
+      let item = items.find(i => i.id === selectedItemId);
+      if (selectedItemId === 'new') {
+        if (!newItemTitle.trim()) return;
+        item = await learningService.createLearningItem(newItemTitle, 'manual');
+      }
+      if (!item) return;
+
+      if (!newActionWording.trim()) return;
+      const action = await learningService.createLearningAction(item.id, 'study', newActionWording);
+
+      sessionService.configureSession(item.title, action.customWording, duration);
+      await sessionService.startSession();
+    } catch (e) {
+      console.error('Failed to start standard session', e);
     }
   };
 
@@ -340,116 +356,233 @@ export const DashboardEnvironment: React.FC = () => {
 
             <Divider />
 
-            {/* Focus Configuration */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              <div>
-                <label
-                  style={{
-                    fontSize: 'var(--font-size-caption)',
-                    color: 'var(--text-secondary)',
-                    display: 'block',
-                    marginBottom: 'var(--space-1)',
-                  }}
-                >
-                  Active Subject
-                </label>
-                <select
-                  value={selectedSubject}
-                  onChange={e => setSelectedSubject(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-base)',
-                    border: '1px solid var(--surface-border)',
-                    color: 'var(--text-primary)',
-                    padding: 'var(--space-3)',
-                    borderRadius: 'var(--radius-sm)',
-                    outline: 'none',
-                    fontSize: 'var(--font-size-body)',
-                  }}
-                >
-                  {subjects.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.emoji} {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {items.length === 0 ? (
+              // 1. Onboarding UI (New User)
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <Typography variant="body" style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Define your first study targets:
+                </Typography>
+                
+                <div>
+                  <label
+                    style={{
+                      fontSize: 'var(--font-size-caption)',
+                      color: 'var(--text-secondary)',
+                      display: 'block',
+                      marginBottom: 'var(--space-1)',
+                    }}
+                  >
+                    What specific topic or skill are you learning?
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Spanish past tense, Rust pointers"
+                    value={onboardingItemTitle}
+                    onChange={e => setOnboardingItemTitle(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'var(--bg-base)',
+                      border: '1px solid var(--surface-border)',
+                      color: 'var(--text-primary)',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-sm)',
+                      outline: 'none',
+                      fontSize: 'var(--font-size-body)',
+                    }}
+                  />
+                </div>
 
-              <div>
-                <label
-                  style={{
-                    fontSize: 'var(--font-size-caption)',
-                    color: 'var(--text-secondary)',
-                    display: 'block',
-                    marginBottom: 'var(--space-1)',
-                  }}
-                >
-                  Session Duration
-                </label>
-                <select
-                  value={duration}
-                  onChange={e => setDuration(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-base)',
-                    border: '1px solid var(--surface-border)',
-                    color: 'var(--text-primary)',
-                    padding: 'var(--space-3)',
-                    borderRadius: 'var(--radius-sm)',
-                    outline: 'none',
-                    fontSize: 'var(--font-size-body)',
-                  }}
-                >
-                  <option value={1500}>25 Minutes (Pomodoro)</option>
-                  <option value={3000}>50 Minutes (Deep Focus)</option>
-                  <option value={5400}>90 Minutes (Ultra Focus)</option>
-                </select>
-              </div>
+                <div>
+                  <label
+                    style={{
+                      fontSize: 'var(--font-size-caption)',
+                      color: 'var(--text-secondary)',
+                      display: 'block',
+                      marginBottom: 'var(--space-1)',
+                    }}
+                  >
+                    What do you intend to do right now?
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Read past tense grammar notes"
+                    value={onboardingActionWording}
+                    onChange={e => setOnboardingActionWording(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'var(--bg-base)',
+                      border: '1px solid var(--surface-border)',
+                      color: 'var(--text-primary)',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-sm)',
+                      outline: 'none',
+                      fontSize: 'var(--font-size-body)',
+                    }}
+                  />
+                </div>
 
-              <div>
-                <label
-                  style={{
-                    fontSize: 'var(--font-size-caption)',
-                    color: 'var(--text-secondary)',
-                    display: 'block',
-                    marginBottom: 'var(--space-1)',
-                  }}
-                >
-                  Topic or Chapter Focus
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Thermodynamics revision"
-                  value={chapter}
-                  onChange={e => setChapter(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-base)',
-                    border: '1px solid var(--surface-border)',
-                    color: 'var(--text-primary)',
-                    padding: 'var(--space-3)',
-                    borderRadius: 'var(--radius-sm)',
-                    outline: 'none',
-                    fontSize: 'var(--font-size-body)',
-                  }}
-                />
+                <div style={{ marginTop: 'var(--space-2)' }}>
+                  <Button
+                    variant="primary"
+                    style={{
+                      width: '100%',
+                      padding: 'var(--space-3) 0',
+                      fontWeight: 'var(--font-weight-bold)',
+                    }}
+                    disabled={!onboardingItemTitle.trim() || !onboardingActionWording.trim() || isOnboardingSubmitting}
+                    onClick={handleOnboardingStart}
+                  >
+                    {isOnboardingSubmitting ? 'Entering focus...' : 'Begin Studying'}
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              // 2. Standard Selection Flow
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <div>
+                  <label
+                    style={{
+                      fontSize: 'var(--font-size-caption)',
+                      color: 'var(--text-secondary)',
+                      display: 'block',
+                      marginBottom: 'var(--space-1)',
+                    }}
+                  >
+                    Select what you are learning:
+                  </label>
+                  <select
+                    value={selectedItemId}
+                    onChange={e => setSelectedItemId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'var(--bg-base)',
+                      border: '1px solid var(--surface-border)',
+                      color: 'var(--text-primary)',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-sm)',
+                      outline: 'none',
+                      fontSize: 'var(--font-size-body)',
+                    }}
+                  >
+                    {items.filter(i => i.status === 'active').map(i => (
+                      <option key={i.id} value={i.id}>
+                        {i.title}
+                      </option>
+                    ))}
+                    <option value="new">[+ Learn something new]</option>
+                  </select>
+                </div>
 
-            {/* Launch Button */}
-            <div style={{ marginTop: 'var(--space-2)' }}>
-              <Button
-                variant="primary"
-                style={{
-                  width: '100%',
-                  padding: 'var(--space-3) 0',
-                  fontWeight: 'var(--font-weight-bold)',
-                }}
-                onClick={handleStart}
-              >
-                Enter Focus Sanctuary
-              </Button>
-            </div>
+                {selectedItemId === 'new' && (
+                  <div>
+                    <label
+                      style={{
+                        fontSize: 'var(--font-size-caption)',
+                        color: 'var(--text-secondary)',
+                        display: 'block',
+                        marginBottom: 'var(--space-1)',
+                      }}
+                    >
+                      New Topic or Skill Name:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Relative velocity"
+                      value={newItemTitle}
+                      onChange={e => setNewItemTitle(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'var(--bg-base)',
+                        border: '1px solid var(--surface-border)',
+                        color: 'var(--text-primary)',
+                        padding: 'var(--space-3)',
+                        borderRadius: 'var(--radius-sm)',
+                        outline: 'none',
+                        fontSize: 'var(--font-size-body)',
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label
+                    style={{
+                      fontSize: 'var(--font-size-caption)',
+                      color: 'var(--text-secondary)',
+                      display: 'block',
+                      marginBottom: 'var(--space-1)',
+                    }}
+                  >
+                    What do you intend to do right now?
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Read notes, Solve 10 problems"
+                    value={newActionWording}
+                    onChange={e => setNewActionWording(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'var(--bg-base)',
+                      border: '1px solid var(--surface-border)',
+                      color: 'var(--text-primary)',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-sm)',
+                      outline: 'none',
+                      fontSize: 'var(--font-size-body)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      fontSize: 'var(--font-size-caption)',
+                      color: 'var(--text-secondary)',
+                      display: 'block',
+                      marginBottom: 'var(--space-1)',
+                    }}
+                  >
+                    Session Duration
+                  </label>
+                  <select
+                    value={duration}
+                    onChange={e => setDuration(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      background: 'var(--bg-base)',
+                      border: '1px solid var(--surface-border)',
+                      color: 'var(--text-primary)',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-sm)',
+                      outline: 'none',
+                      fontSize: 'var(--font-size-body)',
+                    }}
+                  >
+                    <option value={1500}>25 Minutes (Pomodoro)</option>
+                    <option value={3000}>50 Minutes (Deep Focus)</option>
+                    <option value={5400}>90 Minutes (Ultra Focus)</option>
+                  </select>
+                </div>
+
+                <div style={{ marginTop: 'var(--space-2)' }}>
+                  <Button
+                    variant="primary"
+                    style={{
+                      width: '100%',
+                      padding: 'var(--space-3) 0',
+                      fontWeight: 'var(--font-weight-bold)',
+                    }}
+                    disabled={
+                      (selectedItemId === 'new' && !newItemTitle.trim()) ||
+                      !newActionWording.trim()
+                    }
+                    onClick={handleStandardStart}
+                  >
+                    Enter Focus Sanctuary
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
