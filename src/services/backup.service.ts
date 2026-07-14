@@ -184,48 +184,25 @@ export class BackupService {
     if (mode === 'sqlite') {
       const db = getDatabase();
       
-      // Execute the restore inside a secure transaction block
       try {
-        await db.execute('BEGIN TRANSACTION');
+        // Fetch subjects & chapters to build lookups in JS memory
+        const subjects = await db.select<{ id: string; name: string }[]>('SELECT id, name FROM subjects');
+        const subjectMap = new Map(subjects.map(s => [s.name, s.id]));
 
-        // Restore settings & preference configuration
-        if (data.settings) {
-          await settingsRepo.saveSettings(data.settings);
-        }
+        const chapters = await db.select<{ id: string; name: string }[]>('SELECT id, name FROM syllabus_chapters');
+        const chapterMap = new Map(chapters.map(c => [c.name, c.id]));
 
-        // Overwrite raw study sessions log
-        if (Array.isArray(data.sessions)) {
-          await db.execute('DELETE FROM study_sessions');
-          for (const s of data.sessions) {
-            await sessionRepo.saveSession(s);
-          }
-        }
+        const sqlScript = generateRestoreSqlScript(data, subjectMap, chapterMap);
 
-        // Overwrite tasks list
-        if (Array.isArray(data.tasks)) {
-          await db.execute('DELETE FROM tasks');
-          for (const t of data.tasks) {
-            await taskRepo.saveTask(t);
-          }
-        }
-
-        // Overwrite memory entries
-        if (Array.isArray(data.memories)) {
-          await db.execute('DELETE FROM memory_entries');
-          for (const m of data.memories) {
-            await memoryRepo.saveMemory(m);
-          }
-        }
-
-        await db.execute('COMMIT');
+        // Execute the entire SQL script containing all DELETE and INSERT statements in a single connection transaction
+        await db.execute(sqlScript);
         this.pendingRestoreData = null;
       } catch (error) {
-        console.error('Transaction failed, rolling back:', error);
+        console.error('Transaction failed, executing ROLLBACK fallback:', error);
         try {
-          await db.execute('ROLLBACK');
+          await db.execute('ROLLBACK;');
         } catch (rollbackError) {
           console.error('SQLite ROLLBACK command itself failed catastrophically!', rollbackError);
-          // If transaction rollback fails, attempt last-resort recovery snapshot restore
           if (safetySnapshot) {
             await restoreMemorySnapshot(safetySnapshot);
           }
@@ -291,3 +268,119 @@ export class BackupService {
 
 export const backupService = new BackupService();
 export default backupService;
+
+/**
+ * Escapes values safely for inline SQLite query values insertion.
+ */
+function escapeValue(val: unknown): string {
+  if (val === null || val === undefined) {
+    return 'NULL';
+  }
+  if (typeof val === 'boolean') {
+    return val ? '1' : '0';
+  }
+  if (typeof val === 'number') {
+    return String(val);
+  }
+  if (typeof val === 'string') {
+    return `'${val.replace(/'/g, "''")}'`;
+  }
+  return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+}
+
+/**
+ * Builds a single SQL transaction script to execute wipes and inserts atomic operations.
+ */
+function generateRestoreSqlScript(
+  data: BackupPayload['data'],
+  subjectMap: Map<string, string>,
+  chapterMap: Map<string, string>
+): string {
+  const sqlStatements: string[] = [];
+
+  // 1. Settings
+  if (data.settings) {
+    for (const [key, value] of Object.entries(data.settings)) {
+      sqlStatements.push(
+        `INSERT OR REPLACE INTO settings (key, value) VALUES (${escapeValue(key)}, ${escapeValue(value)});`
+      );
+    }
+  }
+
+  // 2. Study Sessions
+  if (Array.isArray(data.sessions)) {
+    sqlStatements.push('DELETE FROM study_sessions;');
+    for (const s of data.sessions) {
+      const subjectId = subjectMap.get(s.subject) || null;
+      const chapterId = chapterMap.get(s.topic) || null;
+
+      sqlStatements.push(
+        `INSERT OR REPLACE INTO study_sessions (
+          id, subject_id, chapter_id, topic, planned_duration, actual_duration, started_at, completed_at, status, reflection, was_interrupted
+        ) VALUES (
+          ${escapeValue(s.id)},
+          ${escapeValue(subjectId)},
+          ${escapeValue(chapterId)},
+          ${escapeValue(s.topic)},
+          ${escapeValue(s.plannedDuration)},
+          ${escapeValue(s.actualDuration)},
+          ${escapeValue(s.startedAt)},
+          ${escapeValue(s.completedAt)},
+          ${escapeValue(s.status)},
+          ${escapeValue(s.reflection)},
+          ${escapeValue(s.wasInterrupted)}
+        );`
+      );
+    }
+  }
+
+  // 3. Tasks
+  if (Array.isArray(data.tasks)) {
+    sqlStatements.push('DELETE FROM tasks;');
+    for (const t of data.tasks) {
+      sqlStatements.push(
+        `INSERT OR REPLACE INTO tasks (
+          id, title, subject_id, priority, status, generated_from_chapter_id, task_type
+        ) VALUES (
+          ${escapeValue(t.id)},
+          ${escapeValue(t.title)},
+          ${escapeValue(t.subjectId)},
+          ${escapeValue(t.priority)},
+          ${escapeValue(t.status)},
+          ${escapeValue(t.generatedFromChapterId)},
+          ${escapeValue(t.taskType || 'manual')}
+        );`
+      );
+    }
+  }
+
+  // 4. Memory Entries
+  if (Array.isArray(data.memories)) {
+    sqlStatements.push('DELETE FROM memory_entries;');
+    for (const m of data.memories) {
+      sqlStatements.push(
+        `INSERT OR REPLACE INTO memory_entries (
+          id, tier, category, content, evidence, relevance_score, created_at, last_accessed, expires_at, is_incorrect, is_permanent
+        ) VALUES (
+          ${escapeValue(m.id)},
+          ${escapeValue(m.tier)},
+          ${escapeValue(m.category)},
+          ${escapeValue(m.content)},
+          ${escapeValue(m.evidence)},
+          ${escapeValue(m.relevanceScore)},
+          ${escapeValue(m.createdAt)},
+          ${escapeValue(m.lastAccessed)},
+          ${escapeValue(m.expiresAt)},
+          ${escapeValue(m.isIncorrect)},
+          ${escapeValue(m.isPermanent)}
+        );`
+      );
+    }
+  }
+
+  return `
+BEGIN TRANSACTION;
+${sqlStatements.join('\n')}
+COMMIT;
+  `.trim();
+}
