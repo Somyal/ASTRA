@@ -3,6 +3,7 @@ import { useUIStore, AppTab } from '../store/ui.store';
 import { useSettingsStore } from '../store/settings.store';
 import { repositoryFactory } from '../repositories/index';
 import { academicEventBus } from '../events/academic_event';
+import { analyticsService } from './analytics.service';
 
 /**
  * SessionService - Manages the lifecycle of study sessions
@@ -294,8 +295,19 @@ export class SessionService implements ISessionService {
     // Read the active session details before clearing to emit the event
     const active = useStudyStore.getState().activeSession;
 
-    // Reset session states back to idle (updates recent list, lifetime stats, status to idle, and clears activeSession)
+    // Reset active session state
     useStudyStore.getState().archiveSession();
+
+    // Recalculate derived statistics from SQLite logs and refresh cache
+    try {
+      const stats = await analyticsService.getStats();
+      useStudyStore.setState({
+        ...stats,
+      });
+    } catch (e) {
+      console.error('Failed to update stats on archive:', e);
+    }
+
     useUIStore.getState().setActiveTab(targetTab);
 
     if (active) {

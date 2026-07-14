@@ -47,6 +47,20 @@ vi.mock('../events/academic_event', () => ({
   },
 }));
 
+vi.mock('../services/analytics.service', () => ({
+  analyticsService: {
+    getStats: vi.fn(() => Promise.resolve({
+      todaySeconds: 0,
+      weekSeconds: 0,
+      monthSeconds: 0,
+      lifetimeSeconds: 0,
+      currentStreak: 0,
+      recentSessions: [],
+      subjectStats: [],
+    })),
+  },
+}));
+
 describe('SessionService', () => {
   let service: SessionService;
 

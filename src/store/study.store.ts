@@ -161,26 +161,11 @@ export const useStudyStore = create<StudyState>((set, get) => ({
   },
 
   archiveSession: () => {
-    const session = get().activeSession;
-    if (session) {
-      const summary: SessionSummary = {
-        id: session.id,
-        date: new Date(session.startedAt).toLocaleDateString(),
-        subject: session.subject,
-        activity: session.topic,
-        chapter: session.topic,
-        durationSecs: session.actualDuration,
-      };
-
-      set(state => ({
-        status: 'idle',
-        activeSession: null,
-        secondsElapsed: 0,
-        recentSessions: [summary, ...state.recentSessions],
-        lifetimeSeconds: state.lifetimeSeconds + session.actualDuration,
-        todaySeconds: state.todaySeconds + session.actualDuration,
-      }));
-    }
+    set({
+      status: 'idle',
+      activeSession: null,
+      secondsElapsed: 0,
+    });
   },
 
   tickTime: () => {

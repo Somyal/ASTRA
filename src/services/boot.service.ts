@@ -7,6 +7,7 @@ import { useSettingsStore } from '../store/settings.store';
 import { seedService } from './seed.service';
 import { syllabusService } from './syllabus.service';
 import { taskIntelligenceService } from './task_intelligence.service';
+import { analyticsService } from './analytics.service';
 
 /**
  * BootService - Initializes the ASTRA application on startup
@@ -116,7 +117,6 @@ export class BootService {
         await taskIntelligenceService.generateDailyWorkQueue();
 
         const dbSettings = await settingsRepo.getSettings();
-        let dbSessions = await sessionRepo.getSessions();
 
         // 5. Crash Recovery Check
         const activeSession = await sessionRepo.getActiveSession();
@@ -135,83 +135,17 @@ export class BootService {
             await sessionRepo.saveSession(recoveredSession);
             recoveredSessionRecord = recoveredSession;
 
-            // Refresh sessions list
-            dbSessions = await sessionRepo.getSessions();
+            // Saved recovered session status
           } catch (recoveryError) {
             console.error('Failed to process crash recovery:', recoveryError);
             // Don't fail boot if recovery fails, just log it
           }
         }
 
-        // 6. Calculate dynamic streak
-        const calculateStreak = (sessions: StudySession[]): number => {
-          const completed = sessions.filter(s => s.status === 'completed');
-          if (completed.length === 0) return 0;
-
-          const formatLocalDate = (d: Date) => {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-          };
-
-          const dates = Array.from(
-            new Set(
-              completed.map(s => {
-                const date = new Date(s.startedAt);
-                return formatLocalDate(date);
-              })
-            )
-          ).sort((a, b) => b.localeCompare(a));
-
-          const todayStr = formatLocalDate(new Date());
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayStr = formatLocalDate(yesterday);
-
-          const dateSet = new Set(dates);
-          let streak: number;
-          let checkDate: Date;
-
-          if (dateSet.has(todayStr)) {
-            streak = 1;
-            checkDate = new Date();
-          } else if (dateSet.has(yesterdayStr)) {
-            streak = 1;
-            checkDate = yesterday;
-          } else {
-            return 0;
-          }
-
-          while (true) {
-            checkDate.setDate(checkDate.getDate() - 1);
-            const prevDayStr = formatLocalDate(checkDate);
-            if (dateSet.has(prevDayStr)) {
-              streak++;
-            } else {
-              break;
-            }
-          }
-          return streak;
-        };
-
-        const streak = calculateStreak(dbSessions);
-
-        const recentSummaries = dbSessions.map(s => ({
-          id: s.id,
-          date: new Date(s.startedAt).toLocaleDateString(),
-          subject: s.subject,
-          activity: s.topic,
-          chapter: s.topic,
-          durationSecs: s.actualDuration,
-        }));
-        const totalSecs = dbSessions.reduce((acc, curr) => acc + curr.actualDuration, 0);
-
+        // 6. Hydrate study store from dynamic analytics service
+        const stats = await analyticsService.getStats();
         useStudyStore.setState({
-          recentSessions: recentSummaries,
-          lifetimeSeconds: totalSecs,
-          todaySeconds: totalSecs,
-          currentStreak: streak,
+          ...stats,
           recoveredSession: recoveredSessionRecord,
         });
 
