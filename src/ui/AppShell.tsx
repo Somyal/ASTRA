@@ -10,6 +10,7 @@ import { SettingsEnvironment } from '../environments/SettingsEnvironment';
 import { DesignSystemPlayground } from '../environments/DesignSystemPlayground';
 import { RecoveryEnvironment } from '../environments/RecoveryEnvironment';
 import { SessionCompleteEnvironment } from '../environments/SessionCompleteEnvironment';
+import { featureFlags } from '../config/featureFlags';
 import './AppShell.css';
 
 export const AppShell: React.FC = () => {
@@ -36,7 +37,7 @@ export const AppShell: React.FC = () => {
       case 'settings':
         return <SettingsEnvironment />;
       case 'playground':
-        return <DesignSystemPlayground />;
+        return featureFlags.developerSurfaces ? <DesignSystemPlayground /> : <DashboardEnvironment />;
       case 'recovery':
         return <RecoveryEnvironment />;
       default:

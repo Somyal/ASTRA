@@ -4,6 +4,7 @@ import { useUIStore } from '../store/ui.store';
 import { useContentStore } from '../store/content.store';
 import { useTasksStore } from '../store/tasks.store';
 import { useSettingsStore } from '../store/settings.store';
+import { featureFlags } from '../config/featureFlags';
 import { sessionService } from '../services/session.service';
 import { taskService } from '../services/task.service';
 import { syllabusService } from '../services/syllabus.service';
@@ -454,46 +455,47 @@ export const DashboardEnvironment: React.FC = () => {
 
         {/* Right Column: Widgets Stack */}
         <div className="widgets-stack">
-          {/* Top Panel: Companion Status */}
-          <div
-            className="glass-panel"
-            style={{
-              padding: 'var(--space-4)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-            }}
-          >
+          {featureFlags.inactiveFeatures && (
             <div
+              className="glass-panel"
               style={{
+                padding: 'var(--space-4)',
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: 'column',
                 gap: 'var(--space-2)',
-                color: 'var(--accent-base)',
               }}
             >
-              <MessageSquare size={16} />
-              <Typography
-                variant="body"
-                style={{ fontWeight: 'var(--font-weight-bold)', margin: 0 }}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)',
+                  color: 'var(--accent-base)',
+                }}
               >
-                Astra Companion
-              </Typography>
+                <MessageSquare size={16} />
+                <Typography
+                  variant="body"
+                  style={{ fontWeight: 'var(--font-weight-bold)', margin: 0 }}
+                >
+                  Astra Companion
+                </Typography>
+              </div>
+              <div
+                style={{
+                  background: 'var(--bg-base)',
+                  padding: 'var(--space-3)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--surface-border)',
+                }}
+              >
+                <Typography variant="caption" color="secondary">
+                  🌟 <strong>Sanctuary Active</strong> — Complete tasks below. Astra is monitoring
+                  focus rhythm updates.
+                </Typography>
+              </div>
             </div>
-            <div
-              style={{
-                background: 'var(--bg-base)',
-                padding: 'var(--space-3)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--surface-border)',
-              }}
-            >
-              <Typography variant="caption" color="secondary">
-                🌟 <strong>Sanctuary Active</strong> — Complete tasks below. Astra is monitoring
-                focus rhythm updates.
-              </Typography>
-            </div>
-          </div>
+          )}
 
           {/* Scrolling Split Panels */}
           <div className="widgets-split-grid">

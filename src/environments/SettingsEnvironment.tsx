@@ -3,6 +3,7 @@ import { useSettingsStore } from '../store/settings.store';
 import { useMemoryStore } from '../store/memory.store';
 import { useTheme } from '../hooks/useTheme';
 import { backupService, BackupPreviewSummary } from '../services/backup.service';
+import { featureFlags } from '../config/featureFlags';
 import { Button } from '../components/Button';
 import { Typography } from '../components/Typography';
 import { Slider } from '../components/Slider';
@@ -148,14 +149,16 @@ export const SettingsEnvironment: React.FC = () => {
               <Eye size={16} />
               Preferences
             </Button>
-            <Button
-              variant={activeSubTab === 'memory' ? 'primary' : 'ghost'}
-              onClick={() => setActiveSubTab('memory')}
-              style={{ justifyContent: 'flex-start', gap: 'var(--space-2)' }}
-            >
-              <Brain size={16} />
-              Memory Sanctuary
-            </Button>
+            {featureFlags.inactiveFeatures && (
+              <Button
+                variant={activeSubTab === 'memory' ? 'primary' : 'ghost'}
+                onClick={() => setActiveSubTab('memory')}
+                style={{ justifyContent: 'flex-start', gap: 'var(--space-2)' }}
+              >
+                <Brain size={16} />
+                Memory Sanctuary
+              </Button>
+            )}
           </div>
 
           {/* Content Area */}

@@ -11,17 +11,24 @@ import {
 import { useUIStore } from '../store/ui.store';
 import { Typography } from '../components/Typography';
 import { IconButton } from '../components/IconButton';
+import { featureFlags } from '../config/featureFlags';
 
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, isSidebarExpanded, toggleSidebar } = useUIStore();
 
-  const navItems = [
+  const baseItems = [
     { id: 'dashboard', label: 'Dashboard Home', icon: <Home size={20} /> },
     { id: 'focus', label: 'Focus Sanctuary', icon: <Timer size={20} /> },
     { id: 'analytics', label: 'Analytics & Progress', icon: <BarChart3 size={20} /> },
     { id: 'settings', label: 'Workspace Settings', icon: <Settings size={20} /> },
-    { id: 'playground', label: 'Components Playground', icon: <Sparkles size={20} /> },
   ] as const;
+
+  const navItems = featureFlags.developerSurfaces
+    ? ([
+        ...baseItems,
+        { id: 'playground', label: 'Components Playground', icon: <Sparkles size={20} /> },
+      ] as const)
+    : baseItems;
 
   return (
     <aside className={`app-sidebar ${isSidebarExpanded ? 'expanded' : 'collapsed'}`}>

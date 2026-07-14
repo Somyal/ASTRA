@@ -100,27 +100,34 @@ Its core objective is to **reduce engineering uncertainty** and define the step-
 
 ---
 
-## 9. LR-1 Implementation Strategy
+## 9. LR-1 Implementation Strategy (Sub-Milestones)
 
-### A. Reconciled Analytics
-1. Rebuild `AnalyticsService` to perform dynamic database aggregations:
-   * `getDailyTotals()`: Returns focus seconds grouped by calendar date.
-   * `getStats()`: Computes `todaySeconds`, `weekSeconds`, `lifetimeSeconds`, and `subjectStats` dynamically from completed focus sessions.
-2. Refactor `BootService` to load these values during store hydration.
+To keep implementation safe and incrementally testable, LR-1 is divided into four sequential sub-milestones:
 
-### B. Atomic Backup and Restore
-1. Wrap all write queries in `BackupService.confirmRestore` inside a database transaction:
-   ```typescript
-   await db.execute('BEGIN TRANSACTION');
-   // ... execute deletes and inserts ...
-   await db.execute('COMMIT');
-   ```
-2. Before executing restore, copy the current database file to `astra.db.bak`. If the transaction throws an error, restore the backup database file.
+### LR-1A: Infrastructure Quarantine
+*   **Objective:** Quarantine inactive developer and placeholder surfaces.
+*   **UI Rules:** **Prefer hiding over deleting** for inactive user-facing features (e.g. companion layouts, memory settings tab, playground tab) unless the code is completely dead, so that future milestones can easily reuse the code blocks.
+*   **Hiding Toggles:**
+    1. *Sidebar Playground:* Remove playground navigation item from `Sidebar.tsx` and disable page routing in `AppShell.tsx`.
+    2. *Memory Sanctuary:* Remove the `activeSubTab === 'memory'` subtab button inside `SettingsEnvironment.tsx`. Do not delete the rendering logic.
+    3. *Companion Card:* Hide or comment out the placeholder `Astra Companion` status widget on the dashboard, replacing it with a clean, active task queue summary layout.
 
-### C. Inactive UI Quarantine
-1. **Hide Sidebar Playground:** Hide the developer playground tab from `Sidebar.tsx` navigation.
-2. **Hide Memory Sanctuary:** Remove the "Memory Sanctuary" tab button from `SettingsEnvironment.tsx`.
-3. **Neutralize Companion Card:** Replace the "Astra Companion" placeholder status widget on the dashboard with a clean, supportive active task queue container.
+### LR-1B: Reconciled Analytics
+*   **Objective:** Create a query-based analytics layer independent of boot logic.
+*   **Design Rule:** Build a clean, query-based, modular `AnalyticsService` for study sessions but **do not over-engineer it** for future learning record structures yet. Build the service to solve today's metrics; do not optimize for the final Learning Record model prematurely.
+*   **Analytics Methods:**
+    *   `getDailyTotals()`: Dynamic SQLite query return grouped durations.
+    *   `getStats()`: Dynamic query output mapping to store parameters: `todaySeconds`, `weekSeconds`, `lifetimeSeconds`, `subjectStats`.
+*   **Boot Service cleanup:** Replace the complex, inline streak and sum loops in `BootService` with direct calls to `AnalyticsService`.
+
+### LR-1C: Transactional Backup & Recovery
+*   **Objective:** Secure backup restoration from mid-operation failures.
+*   **Database transactions:** Wrap all delete and restore insert queries in `BackupService.confirmRestore` inside a single `BEGIN TRANSACTION` / `COMMIT` SQLite query block.
+*   **Pre-Restore Rollback Snapshot:** Copy the active `astra.db` file to a temporary backup path (e.g. `astra.db.bak`) before running restore. If the transaction fails, automatically catch the error, execute rollback, and restore the backup file copy.
+
+### LR-1D: Legacy Cleanup
+*   **Objective:** Purge dead, unused prototype store assets.
+*   **Deletions:** Cleanly remove `src/store/astra.store.ts` file and remove its imports from `src/store/index.ts`.
 
 ---
 
@@ -134,19 +141,19 @@ Its core objective is to **reduce engineering uncertainty** and define the step-
 
 ## 11. LR-2 Impact Plan
 
-*   By implementing `AnalyticsService` to query sessions dynamically now, we ensure that in LR-2, the analytics queries can easily join `learning_entries` without changing any UI component bindings or store structures.
+*   By implementing a clean, modular `AnalyticsService` interface now, we ensure that in LR-2, the analytics service queries can join `learning_entries` internally without requiring any changes to React environments or Zustand store bindings.
 
 ---
 
 ## 12. Commit Strategy
 
-1.  **Commit 1:** Quarantine inactive developer and placeholder surfaces.
+1.  **Commit 1 (LR-1A):** Quarantine inactive developer and placeholder surfaces.
     *   *Message:* `ui: hide inactive companion, memory settings, and developer playground`
-2.  **Commit 2:** Rebuild AnalyticsService and reconcile study store totals.
+2.  **Commit 2 (LR-1B):** Rebuild AnalyticsService and reconcile study store totals.
     *   *Message:* `refactor: move statistics and streak calculations to AnalyticsService`
-3.  **Commit 3:** Implement transactional backup restore and rollback backup copy.
+3.  **Commit 3 (LR-1C):** Implement transactional backup restore and rollback backup copy.
     *   *Message:* `data: secure backup restore with sqlite transaction and file rollback`
-4.  **Commit 4:** Clean up `astra.store.ts` and verify all tests pass.
+4.  **Commit 4 (LR-1D):** Clean up `astra.store.ts` and verify all tests pass.
     *   *Message:* `cleanup: delete unused astra chat store and verify test suite`
 
 ---
@@ -158,6 +165,26 @@ Its core objective is to **reduce engineering uncertainty** and define the step-
 
 ---
 
-## 14. LR-1 Readiness Verdict
+## 14. Definition of Success (Commit Invariants)
+
+Each commit is verified against these explicit pass conditions:
+
+1.  **Commit 1 (LR-1A) succeeds if:**
+    *   No placeholder AI companion or Memory Sanctuary settings tabs are visible in the UI.
+    *   Vite frontend compiles with zero errors.
+2.  **Commit 2 (LR-1B) succeeds if:**
+    *   Focus statistics (`todaySeconds`, `weekSeconds`, `lifetimeSeconds`, and `subjectStats`) are derived entirely from queries to `AnalyticsService`.
+    *   `BootService` contains no inline streak loops or statistics aggregation code.
+    *   Test suite passes cleanly.
+3.  **Commit 3 (LR-1C) succeeds if:**
+    *   A restore action is atomic (all tables restored or none).
+    *   An interrupted restore does not corrupt the user's database or leave tables empty.
+4.  **Commit 4 (LR-1D) succeeds if:**
+    *   Dead `astra.store.ts` file is deleted and its imports are pruned.
+    *   Test suite and frontend typecheck succeed.
+
+---
+
+## 15. LR-1 Readiness Verdict
 
 **Yes.** Astra is ready for LR-1 implementation. All database schemas, repository files, and UI layouts have been audited, the gaps are mapped, and the commit sequences are defined.
