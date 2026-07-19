@@ -1,3 +1,26 @@
+🌌 Project Status
+
+⚠️ Development is currently paused.
+
+Astra began as an ambitious attempt to build a local-first AI-powered study operating system. During development, I realized that the vision for Astra extends far beyond my current level of experience in AI engineering, distributed systems, and large-scale application architecture.
+
+Rather than continue building on incomplete foundations, I've decided to pause active development and spend the next year deepening my knowledge in:
+
+Artificial Intelligence & LLM systems
+Machine Learning fundamentals
+Agentic workflows
+Systems programming (Rust)
+Software architecture & distributed systems
+Product engineering
+
+The project is not abandoned—it's simply waiting until I have the technical foundation to build it the way it was originally envisioned.
+
+In the meantime, many of the ideas explored here continue to influence my smaller projects, particularly BeatMe, where I can experiment with concepts at a much smaller scale.
+
+I hope to return to Astra in the future with the experience needed to do the vision justice.
+
+
+
 # Project Astra — Study Sanctuary
 
 Astra is a premium desktop study environment designed to remove cognitive friction between deciding to study and actually studying. Developed around the principles of calm design, local-first reliability, emotional intelligence, and complete student ownership of data, Astra acts as a dedicated study space rather than a fragmented productivity application.
